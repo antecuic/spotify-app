@@ -4,24 +4,21 @@ import { useRef } from "react";
 import { useEffect } from "react/cjs/react.development";
 import { useRecoilValue } from "recoil";
 import { playlistIdState } from "../atoms/playlistAtom";
-import { tabState } from "../atoms/tabAtom";
 import Playlist from "./Playlist";
-import Search from "./Search";
 
 function Center() {
   const { data: session } = useSession();
-  const appTabState = useRecoilValue(tabState);
   const playlistId = useRecoilValue(playlistIdState);
   const centerRef = useRef();
 
   useEffect(() => {
     centerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-  }, [appTabState, playlistId]);
+  }, [playlistId]);
 
   return (
     <div
       ref={centerRef}
-      className="flex-grow h-screen overflow-y-scroll scrollbar-hide pb-60"
+      className="flex-grow h-screen overflow-y-scroll scrollbar-hide"
     >
       <header className="absolute top-5 right-8">
         <div
@@ -39,7 +36,7 @@ function Center() {
           <h2 className="pr-2 hidden lg:inline">{`Logout from ${session?.user.name}`}</h2>
         </div>
       </header>
-      {appTabState === "Search" ? <Search /> : <Playlist />}
+      <Playlist />
     </div>
   );
 }
