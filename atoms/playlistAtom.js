@@ -7,5 +7,5 @@ export const playlistState = atom({
 
 export const playlistIdState = atom({
   key: "playlistIdState",
-  default: "6aYQxGAj7L2VeEwYvtJ8EV", // Tarantino Collection playlist
+  default: null,
 });

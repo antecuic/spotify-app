@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { useRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import useSpotify from "../hooks/useSpotify";
 import { currentTrackIdState, isPlayingState } from "../atoms/songAtom";
 
@@ -9,7 +9,7 @@ function Song({ order, track }) {
   const spotifyApi = useSpotify();
   const [currentTrackId, setCurrentTrackId] =
     useRecoilState(currentTrackIdState);
-  const [isPlaying, setIsPlaying] = useRecoilState(isPlayingState);
+  const setIsPlaying = useSetRecoilState(isPlayingState);
 
   const playSong = () => {
     setCurrentTrackId(track.track.id);
@@ -37,7 +37,9 @@ function Song({ order, track }) {
         </div>
       </div>
       <div className="flex items-center justify-between ml-auto md:ml-0">
-        <p className="w-40 hidden md:inline">{track.track.album.name}</p>
+        <p className="w-40 hidden md:inline truncate">
+          {track.track.album.name}
+        </p>
         <p>{millisToMinutesAndSeconds(track.track.duration_ms)}</p>
       </div>
     </div>
