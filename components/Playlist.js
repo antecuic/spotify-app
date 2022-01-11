@@ -15,6 +15,9 @@ const colors = [
   "from-yellow-500",
   "from-pink-500",
   "from-purple-500",
+  "from-amber-500",
+  "from-rose-500",
+  "from-cyan-500",
 ];
 
 function Playlist() {

@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { debounce } from "lodash";
+import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { useEffect } from "react/cjs/react.development";
 import { useSetRecoilState } from "recoil";
@@ -14,12 +15,13 @@ function Search() {
   const spotifyApi = useSpotify();
   const [userInput, setUserInput] = useState("");
   const [tracks, setTracks] = useState();
-  const [albums, setAlbums] = useState();
   const [playlists, setPlaylists] = useState();
-  const [artists, setArtists] = useState();
+  const [topTracks, setTopTracks] = useState();
+  const [recentlyPlayed, setRecentlyPlayed] = useState();
   const setCurrentTrackId = useSetRecoilState(currentTrackIdState);
   const setIsPlaying = useSetRecoilState(isPlayingState);
   const setPlaylistId = useSetRecoilState(playlistIdState);
+  const router = useRouter();
 
   const debouncedSearchResults = useCallback(
     debounce((input) => {
@@ -27,17 +29,24 @@ function Search() {
         .search(input, ["track", "playlist", "album", "artist"])
         .then((data) => {
           setTracks(data.body.tracks);
-          setAlbums(data.body.albums);
           setPlaylists(data.body.playlists);
-          setArtists(data.body.artists);
-          console.log(data.body);
+          setTopTracks([]);
         })
         .catch((e) => console.error(e));
     }, 300),
     []
   );
   useEffect(() => {
-    if (userInput.length < 2) {
+    if (userInput === "") {
+      spotifyApi.getMyTopTracks({ limit: 25 }).then((data) => {
+        setTopTracks(data.body.items);
+      });
+
+      spotifyApi.getMyRecentlyPlayedTracks({ limit: 25 }).then((data) => {
+        const recents = data.body.items.map((item) => item.track);
+        setRecentlyPlayed(recents);
+      });
+
       return;
     }
     debouncedSearchResults(userInput);
@@ -46,15 +55,17 @@ function Search() {
   const playSong = (id) => {
     setCurrentTrackId(id);
     setIsPlaying(true);
-    const track = tracks?.items.find((track) => track.id === id);
 
-    spotifyApi.play({
-      uris: [track.uri],
+    spotifyApi.getTrack(id).then((data) => {
+      spotifyApi.play({
+        uris: [data.body.uri],
+      });
     });
   };
 
   const openPlaylist = (id) => {
     setPlaylistId(id);
+    router.push("/");
   };
 
   return (
@@ -68,6 +79,20 @@ function Search() {
         />
       </div>
       <div>
+        {!userInput.length && topTracks?.length && (
+          <SearchResults
+            items={topTracks}
+            title="Top 25"
+            handleItemPress={playSong}
+          />
+        )}
+        {!userInput.length && recentlyPlayed?.length && (
+          <SearchResults
+            items={recentlyPlayed}
+            title="Recently played"
+            handleItemPress={playSong}
+          />
+        )}
         {tracks?.items.length > 0 && (
           <SearchResults
             items={tracks?.items}
@@ -75,18 +100,12 @@ function Search() {
             handleItemPress={playSong}
           />
         )}
-        {artists?.items.length > 0 && (
-          <SearchResults items={artists?.items} title="Artists" />
-        )}
         {playlists?.items.length > 0 && (
           <SearchResults
             items={playlists?.items}
             title="Playlists"
             handleItemPress={openPlaylist}
           />
-        )}
-        {albums?.items.length > 0 && (
-          <SearchResults items={albums?.items} title="Albums" />
         )}
       </div>
     </section>
